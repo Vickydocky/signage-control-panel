@@ -1,0 +1,13 @@
+{
+  "name": "signage-control-panel",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Signage Control Panel - admin dashboard, realtime API, and device client",
+  "workspaces": ["apps/*", "packages/*"],
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "dev:api": "npm run dev -w @signage/api",
+    "build:api": "npm run build -w @signage/api",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  }
+}
