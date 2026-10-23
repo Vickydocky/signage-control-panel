@@ -76,3 +76,24 @@ export type ServerToDashboardMessage =
 /** Dashboard -> Server */
 export type DashboardToServerMessage =
   | { type: 'push_content'; deviceId: string; contentId: string; duration_seconds?: number };
+
+// ---------------------------------------------------------------------
+// REST helpers
+// ---------------------------------------------------------------------
+
+/** Detail device untuk admin: termasuk kredensial untuk connect WebSocket */
+export type DeviceWithToken = Device & { device_token: string };
+
+export interface Paginated<T> {
+  data: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface ApiErrorBody {
+  error: { code: string; message: string; details?: unknown };
+}
+
+export * from './constants';
+export * from './schemas';
