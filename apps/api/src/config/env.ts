@@ -17,6 +17,7 @@ const schema = z.object({
   SUPABASE_STORAGE_BUCKET: z.string().default('contents'),
   JWT_SECRET: z.string().min(16).default('dev-only-secret-change-me-please'),
   JWT_EXPIRES_IN: z.string().default('8h'),
+  WS_PING_INTERVAL_MS: z.coerce.number().int().min(500).default(15000),
 });
 
 const parsed = schema.safeParse(process.env);

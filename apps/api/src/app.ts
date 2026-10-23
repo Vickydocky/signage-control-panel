@@ -7,6 +7,7 @@ import { env } from "./config/env";
 import { AppError } from "./lib/errors";
 import { apiRoutes } from "./routes";
 import { healthRoutes } from "./routes/health";
+import { registerRealtime } from "./realtime";
 
 export async function buildApp() {
   const app = Fastify({
@@ -63,6 +64,7 @@ export async function buildApp() {
 
   await app.register(healthRoutes);
   await app.register(apiRoutes, { prefix: "/api" });
+  registerRealtime(app);
 
   return app;
 }
