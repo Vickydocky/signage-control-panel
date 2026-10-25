@@ -6,6 +6,8 @@ import type {
   CreatePlaylistInput,
   Device,
   DeviceWithToken,
+  LoginInput,
+  LoginResponse,
   Paginated,
   Playlist,
   PlaylistDetail,
@@ -50,9 +52,21 @@ function describeError(body: ApiErrorBody | null, fallback: string) {
   return { code: err.code, message: err.message };
 }
 
+let authToken: string | null = null;
+let unauthorizedHandler: (() => void) | null = null;
+
+export function setAuthToken(token: string | null) {
+  authToken = token;
+}
+
+/** Dipanggil saat server menjawab 401 untuk panggilan yang membawa token (sesi habis atau tidak sah) */
+export function setUnauthorizedHandler(handler: (() => void) | null) {
+  unauthorizedHandler = handler;
+}
+
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers);
-  // Body teks = JSON. Untuk FormData (upload), browser mengatur content-type sendiri.
+  if (authToken) headers.set("authorization", `Bearer ${authToken}`);
   if (typeof init.body === "string")
     headers.set("content-type", "application/json");
 
@@ -72,6 +86,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const body = await res.json().catch(() => null);
   if (!res.ok) {
     const { code, message } = describeError(body, res.statusText);
+    if (res.status === 401 && authToken) unauthorizedHandler?.();
     throw new ApiError(res.status, code, message);
   }
   return body as T;
@@ -83,6 +98,10 @@ const json = (method: string, data: unknown): RequestInit => ({
 });
 
 export const api = {
+  auth: {
+    login: (input: LoginInput) =>
+      request<LoginResponse>("/auth/login", json("POST", input)),
+  },
   devices: {
     list: () => request<Paginated<Device>>("/devices?pageSize=100"),
     get: (id: string) => request<DeviceWithToken>(`/devices/${id}`),

@@ -1,80 +1,68 @@
-import { useEffect, useState } from "react";
-import { ConnectionPill, ToastView, useToast } from "./components/ui";
-import { useDevices } from "./hooks/useDevices";
-import { ContentsPage } from "./pages/ContentsPage";
-import { DevicesPage } from "./pages/DevicesPage";
-import { PlaylistsPage } from "./pages/PlaylistsPage";
+import { useCallback, useEffect, useState } from "react";
+import { Dashboard } from "./Dashboard";
+import { setAuthToken, setUnauthorizedHandler } from "./lib/api";
+import {
+  type Session,
+  clearSession,
+  loadSession,
+  saveSession,
+} from "./lib/session";
+import { LoginPage } from "./pages/LoginPage";
 
-type Tab = "devices" | "contents" | "playlists";
-const TABS: { id: Tab; label: string }[] = [
-  { id: "devices", label: "Devices" },
-  { id: "contents", label: "Contents" },
-  { id: "playlists", label: "Playlists" },
-];
-
-const tabFromHash = (): Tab => {
-  const hash = window.location.hash.slice(1);
-  return hash === "contents" || hash === "playlists" ? hash : "devices";
-};
+const SESSION_ENDED = "Your session has ended. Please sign in again.";
+const MAX_TIMEOUT_MS = 2 ** 31 - 1; // batas setTimeout
 
 export default function App() {
-  const [tab, setTab] = useState<Tab>(tabFromHash);
-  const { toast, notify } = useToast();
-  // Dipanggil di level App agar koneksi WebSocket tetap hidup saat pindah tab
-  const devices = useDevices((message) => notify(message, "error"));
+  const [session, setSession] = useState<Session | null>(() => {
+    const saved = loadSession();
+    setAuthToken(saved?.token ?? null); // harus terpasang sebelum halaman mana pun memanggil API
+    return saved;
+  });
+  const [notice, setNotice] = useState<string | null>(null);
 
-  useEffect(() => {
-    const onHash = () => setTab(tabFromHash());
-    window.addEventListener("hashchange", onHash);
-    return () => window.removeEventListener("hashchange", onHash);
+  const signOut = useCallback((message: string | null = null) => {
+    clearSession();
+    setAuthToken(null);
+    setSession(null);
+    setNotice(message);
   }, []);
 
+  // Server menjawab 401 di panggilan mana pun: sesi tidak berlaku lagi
+  useEffect(() => {
+    setUnauthorizedHandler(() => signOut(SESSION_ENDED));
+    return () => setUnauthorizedHandler(null);
+  }, [signOut]);
+
+  // Keluar otomatis tepat saat token kedaluwarsa
+  useEffect(() => {
+    if (!session) return;
+    const wait = Math.min(
+      Math.max(session.expiresAt - Date.now(), 0),
+      MAX_TIMEOUT_MS,
+    );
+    const timer = setTimeout(() => signOut(SESSION_ENDED), wait);
+    return () => clearTimeout(timer);
+  }, [session, signOut]);
+
+  if (!session) {
+    return (
+      <LoginPage
+        notice={notice}
+        onLoggedIn={(next) => {
+          saveSession(next);
+          setAuthToken(next.token);
+          setNotice(null);
+          setSession(next);
+        }}
+      />
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
-          <div className="flex items-center gap-6">
-            <span className="text-lg font-semibold">
-              📺 Signage Control Panel
-            </span>
-            <nav className="flex gap-1" aria-label="Main">
-              {TABS.map((t) => (
-                <a
-                  key={t.id}
-                  href={`#${t.id}`}
-                  aria-current={tab === t.id ? "page" : undefined}
-                  className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
-                    tab === t.id
-                      ? "bg-slate-900 text-white"
-                      : "text-slate-600 hover:bg-slate-100"
-                  }`}
-                >
-                  {t.label}
-                </a>
-              ))}
-            </nav>
-          </div>
-          <ConnectionPill state={devices.connection} />
-        </div>
-      </header>
-
-      {devices.connection === "reconnecting" && (
-        <div
-          role="status"
-          className="bg-amber-50 px-4 py-2 text-center text-sm text-amber-800"
-        >
-          Connection to the server was lost. Reconnecting… Device status may be
-          out of date.
-        </div>
-      )}
-
-      <main className="mx-auto max-w-6xl px-4 py-8">
-        {tab === "devices" && <DevicesPage {...devices} notify={notify} />}
-        {tab === "contents" && <ContentsPage notify={notify} />}
-        {tab === "playlists" && <PlaylistsPage notify={notify} />}
-      </main>
-
-      <ToastView toast={toast} />
-    </div>
+    <Dashboard
+      session={session}
+      onSignOut={() => signOut()}
+      onSessionEnded={() => signOut(SESSION_ENDED)}
+    />
   );
 }

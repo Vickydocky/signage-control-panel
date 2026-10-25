@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { Device, ServerToDashboardMessage } from "@signage/shared";
+import { type Device, type ServerToDashboardMessage, WS_CLOSE } from '@signage/shared';
 import { WS_URL, api } from "../lib/api";
 import { type ConnectionState, type ReconnectingSocket, connectSocket } from '@signage/client';
 
@@ -22,7 +22,9 @@ export interface UseDevices {
  *  2. WebSocket: `snapshot` menggantikan data awal, lalu event real-time menjaganya tetap segar
  */
 export function useDevices(
+  token: string,
   onServerError: (message: string) => void,
+  onSessionEnded: () => void,
 ): UseDevices {
   const [devices, setDevices] = useState<Device[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,6 +36,8 @@ export function useDevices(
   // Simpan callback di ref agar socket tidak disambung ulang setiap callback berubah
   const onErrorRef = useRef(onServerError);
   onErrorRef.current = onServerError;
+  const onSessionEndedRef = useRef(onSessionEnded);
+  onSessionEndedRef.current = onSessionEnded;
 
   // 1) Data awal lewat REST
   useEffect(() => {
@@ -82,8 +86,12 @@ export function useDevices(
     };
 
     const socket = connectSocket({
-      url: `${WS_URL}?role=dashboard`,
+      url: `${WS_URL}?${new URLSearchParams({ role: 'dashboard', token })}`,
       onStatus: setConnection,
+      // Server menolak atau mengakhiri sesi (token tidak sah / kedaluwarsa): kembali ke halaman login
+      onClosed: (code) => {
+        if (code === WS_CLOSE.UNAUTHORIZED) onSessionEndedRef.current();
+      },
       onMessage: (data) => {
         if (typeof data === "object" && data !== null && "type" in data) {
           handle(data as ServerToDashboardMessage);
@@ -95,7 +103,7 @@ export function useDevices(
       socket.close();
       socketRef.current = null;
     };
-  }, []);
+  }, [token]);
 
   const pushContent = useCallback(
     (deviceId: string, contentId: string, durationSeconds?: number) =>

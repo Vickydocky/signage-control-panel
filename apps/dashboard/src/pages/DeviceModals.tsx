@@ -20,6 +20,8 @@ import { api } from "../lib/api";
 const messageOf = (err: unknown) =>
   err instanceof Error ? err.message : "Something went wrong";
 
+const footer = "flex justify-end gap-2 border-t border-zinc-100 pt-4";
+
 // ---------------------------------------------------------------------
 // Tambah / edit device
 // ---------------------------------------------------------------------
@@ -61,7 +63,7 @@ export function DeviceFormModal({
 
   return (
     <Modal title={device ? "Edit device" : "Add device"} onClose={onClose}>
-      <form onSubmit={submit} className="space-y-4">
+      <form onSubmit={submit} className="space-y-5">
         <Field label="Name">
           <input
             className={inputClass}
@@ -102,7 +104,7 @@ export function DeviceFormModal({
           </Field>
         )}
         <ErrorText message={error} />
-        <div className="flex justify-end gap-2 pt-2">
+        <div className={footer}>
           <button type="button" className={btnSecondary} onClick={onClose}>
             Cancel
           </button>
@@ -133,17 +135,21 @@ function CopyRow({ label, value }: { label: string; value: string }) {
 
   return (
     <div>
-      <span className="mb-1 block text-sm font-medium text-slate-700">
+      <span className="mb-1.5 block text-sm font-medium text-zinc-700">
         {label}
       </span>
       <div className="flex gap-2">
         <input
           readOnly
           value={value}
-          className={`${inputClass} font-mono text-xs`}
+          className={`${inputClass} bg-zinc-50 font-mono text-xs`}
           onFocus={(e) => e.currentTarget.select()}
         />
-        <button type="button" className={btnSecondary} onClick={copy}>
+        <button
+          type="button"
+          className={`${btnSecondary} w-20 shrink-0`}
+          onClick={copy}
+        >
           {copied ? "Copied" : "Copy"}
         </button>
       </div>
@@ -193,8 +199,8 @@ export function TokenModal({
 
   return (
     <Modal title={`Connect “${device.nama}”`} onClose={onClose}>
-      <div className="space-y-4">
-        <p className="text-sm text-slate-600">
+      <div className="space-y-5">
+        <p className="text-sm text-zinc-600">
           Enter these credentials in the device app to connect this screen.
         </p>
         <CopyRow label="Device ID" value={device.id} />
@@ -202,13 +208,13 @@ export function TokenModal({
           <CopyRow label="Device token" value={token} />
         ) : (
           !error && (
-            <div className="flex items-center gap-2 text-sm text-slate-500">
+            <div className="flex items-center gap-2 text-sm text-zinc-500">
               <Spinner /> Loading token…
             </div>
           )
         )}
         <ErrorText message={error} />
-        <div className="flex justify-between gap-2 pt-2">
+        <div className="flex items-center justify-between gap-2 border-t border-zinc-100 pt-4">
           <button
             type="button"
             className={btnDanger}
@@ -252,35 +258,40 @@ export function PushModal({
 
   return (
     <Modal title={`Push content to “${device.nama}”`} onClose={onClose}>
-      <div className="space-y-4">
+      <div className="space-y-5">
         {contents === null && !error && (
-          <div className="flex items-center gap-2 text-sm text-slate-500">
+          <div className="flex items-center gap-2 text-sm text-zinc-500">
             <Spinner /> Loading contents…
           </div>
         )}
         {contents?.length === 0 && (
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-zinc-600">
             No content yet. Add some in the Contents tab first.
           </p>
         )}
 
         {contents && contents.length > 0 && (
-          <ul className="max-h-64 space-y-1 overflow-y-auto rounded-lg border border-slate-200 p-1">
+          <ul className="max-h-64 space-y-0.5 overflow-y-auto rounded-md border border-zinc-200 p-1">
             {contents.map((c) => (
               <li key={c.id}>
                 <label
-                  className={`flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm ${selected === c.id ? "bg-indigo-50" : "hover:bg-slate-50"}`}
+                  className={`flex cursor-pointer items-center gap-3 rounded px-3 py-2 text-sm transition-colors ${
+                    selected === c.id
+                      ? "bg-blue-50 ring-1 ring-inset ring-blue-600/20"
+                      : "hover:bg-zinc-50"
+                  }`}
                 >
                   <input
                     type="radio"
                     name="content"
+                    className="accent-blue-600"
                     checked={selected === c.id}
                     onChange={() => setSelected(c.id)}
                   />
-                  <span className="min-w-0 flex-1 truncate font-medium text-slate-900">
+                  <span className="min-w-0 flex-1 truncate font-medium text-zinc-900">
                     {c.judul}
                   </span>
-                  <span className="rounded bg-slate-100 px-1.5 py-0.5 text-xs uppercase text-slate-600">
+                  <span className="rounded bg-zinc-100 px-1.5 py-0.5 text-[11px] font-medium uppercase tracking-wide text-zinc-600">
                     {c.tipe}
                   </span>
                 </label>
@@ -300,7 +311,7 @@ export function PushModal({
           />
         </Field>
         <ErrorText message={error} />
-        <div className="flex justify-end gap-2 pt-2">
+        <div className={footer}>
           <button type="button" className={btnSecondary} onClick={onClose}>
             Cancel
           </button>

@@ -1,1 +1,38 @@
 @import "tailwindcss";
+
+/*
+  Font: Inter kalau tersedia, kalau tidak jatuh ke font sistem.
+  Opsional: `npm i @fontsource-variable/inter` lalu tambahkan
+  `import "@fontsource-variable/inter";` di main.tsx.
+*/
+@theme {
+  --font-sans:
+    "Inter Variable", "Inter", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background-color: var(--color-zinc-50);
+    color: var(--color-zinc-900);
+    font-feature-settings: "cv11", "ss01";
+  }
+
+  ::selection {
+    background-color: var(--color-blue-600);
+    color: white;
+  }
+
+  /* Tombol dan link yang bisa diklik pakai kursor tangan (v4 default-nya panah) */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+}

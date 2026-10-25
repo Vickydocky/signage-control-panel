@@ -78,8 +78,10 @@ export function DevicesPage({
     <section>
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Devices</h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
+            Devices
+          </h1>
+          <p className="mt-1 text-sm text-zinc-500">
             {devices.length === 0
               ? "No screens yet"
               : `${onlineCount} of ${devices.length} online`}
@@ -118,7 +120,7 @@ export function DevicesPage({
       {error && (
         <p
           role="alert"
-          className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700"
+          className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
         >
           {error}
         </p>
@@ -129,7 +131,7 @@ export function DevicesPage({
           {[0, 1, 2].map((i) => (
             <div
               key={i}
-              className="h-14 animate-pulse rounded-xl bg-slate-200/70"
+              className="h-14 animate-pulse rounded-lg bg-zinc-200/70"
             />
           ))}
         </div>
@@ -149,9 +151,9 @@ export function DevicesPage({
       ) : visible.length === 0 ? (
         <EmptyState title="No devices match your filters" />
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
+        <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white">
           <table className="w-full min-w-[760px] text-left text-sm">
-            <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+            <thead className="border-b border-zinc-200 bg-zinc-50/70 text-xs font-medium text-zinc-500">
               <tr>
                 <th className="px-4 py-3 font-medium">Name</th>
                 <th className="px-4 py-3 font-medium">Location</th>
@@ -161,16 +163,14 @@ export function DevicesPage({
                 <th className="px-4 py-3 text-right font-medium">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-zinc-100">
               {visible.map((d) => (
-                <tr key={d.id} className="hover:bg-slate-50/60">
-                  <td className="px-4 py-3 font-medium text-slate-900">
+                <tr key={d.id} className="transition-colors hover:bg-zinc-50">
+                  <td className="px-4 py-3 font-medium text-zinc-900">
                     {d.nama}
                   </td>
-                  <td className="px-4 py-3 text-slate-600">
-                    {d.lokasi ?? "—"}
-                  </td>
-                  <td className="px-4 py-3 text-slate-600">
+                  <td className="px-4 py-3 text-zinc-600">{d.lokasi ?? "—"}</td>
+                  <td className="px-4 py-3 text-zinc-600">
                     {d.playlist_id
                       ? (playlistName.get(d.playlist_id) ?? "…")
                       : "—"}
@@ -178,11 +178,11 @@ export function DevicesPage({
                   <td className="px-4 py-3">
                     <StatusBadge status={d.status} />
                   </td>
-                  <td className="px-4 py-3 text-slate-500">
+                  <td className="px-4 py-3 text-zinc-500">
                     {timeAgo(d.last_seen, now)}
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex justify-end gap-1">
+                    <div className="flex justify-end gap-0.5">
                       <button
                         className={btnGhost}
                         disabled={d.status !== "online"}
@@ -208,7 +208,7 @@ export function DevicesPage({
                         Edit
                       </button>
                       <button
-                        className={`${btnGhost} text-red-600 hover:bg-red-50`}
+                        className="rounded-md px-2.5 py-1.5 text-sm font-medium text-red-600 transition hover:bg-red-50 hover:text-red-700"
                         onClick={() => remove(d)}
                       >
                         Delete

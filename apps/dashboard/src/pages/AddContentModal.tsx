@@ -79,7 +79,7 @@ export function AddContentModal({
 
   return (
     <Modal title="Add content" onClose={onClose}>
-      <form onSubmit={submit} className="space-y-4">
+      <form onSubmit={submit} className="space-y-5">
         <Field label="Type">
           <select
             className={inputClass}
@@ -120,7 +120,7 @@ export function AddContentModal({
         {mode === "text" && (
           <Field label="Text to display" hint={`${payload.length}/2000`}>
             <textarea
-              className={inputClass}
+              className={`${inputClass} resize-y`}
               rows={4}
               value={payload}
               onChange={(e) => setPayload(e.target.value)}
@@ -145,7 +145,7 @@ export function AddContentModal({
             hint={`JPG, PNG, WebP, GIF, MP4 or WebM. Max ${MAX_MB} MB.`}
           >
             <input
-              className={`${inputClass} file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-sm file:font-medium`}
+              className={`${inputClass} cursor-pointer p-1.5 text-zinc-600 file:mr-3 file:cursor-pointer file:rounded file:border file:border-zinc-300 file:bg-zinc-50 file:px-3 file:py-1 file:text-sm file:font-medium file:text-zinc-700 hover:file:bg-zinc-100`}
               type="file"
               accept={ACCEPT}
               onChange={(e) => pickFile(e.target.files?.[0] ?? null)}
@@ -154,7 +154,7 @@ export function AddContentModal({
         )}
 
         <ErrorText message={error} />
-        <div className="flex justify-end gap-2 pt-2">
+        <div className="flex justify-end gap-2 border-t border-zinc-100 pt-4">
           <button type="button" className={btnSecondary} onClick={onClose}>
             Cancel
           </button>

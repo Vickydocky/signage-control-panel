@@ -37,8 +37,10 @@ export function PlaylistsPage({
     <section>
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Playlists</h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
+            Playlists
+          </h1>
+          <p className="mt-1 text-sm text-zinc-500">
             Assign a playlist to a screen from Devices → Edit.
           </p>
         </div>
@@ -50,14 +52,14 @@ export function PlaylistsPage({
       {error && (
         <p
           role="alert"
-          className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700"
+          className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
         >
           {error}
         </p>
       )}
 
       {loading ? (
-        <div className="flex items-center gap-2 text-sm text-slate-500">
+        <div className="flex items-center gap-2 text-sm text-zinc-500">
           <Spinner /> Loading…
         </div>
       ) : playlists.length === 0 ? (
@@ -71,9 +73,9 @@ export function PlaylistsPage({
           }
         />
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
+        <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white">
           <table className="w-full min-w-[520px] text-left text-sm">
-            <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+            <thead className="border-b border-zinc-200 bg-zinc-50/70 text-xs font-medium text-zinc-500">
               <tr>
                 <th className="px-4 py-3 font-medium">Name</th>
                 <th className="px-4 py-3 font-medium">Items</th>
@@ -81,18 +83,18 @@ export function PlaylistsPage({
                 <th className="px-4 py-3 text-right font-medium">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-zinc-100">
               {playlists.map((p) => (
-                <tr key={p.id} className="hover:bg-slate-50/60">
-                  <td className="px-4 py-3 font-medium text-slate-900">
+                <tr key={p.id} className="transition-colors hover:bg-zinc-50">
+                  <td className="px-4 py-3 font-medium text-zinc-900">
                     {p.nama}
                   </td>
-                  <td className="px-4 py-3 text-slate-600">{p.item_count}</td>
-                  <td className="px-4 py-3 text-slate-500">
+                  <td className="px-4 py-3 text-zinc-600">{p.item_count}</td>
+                  <td className="px-4 py-3 text-zinc-500">
                     {formatDateTime(p.updated_at)}
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex justify-end gap-1">
+                    <div className="flex justify-end gap-0.5">
                       <button
                         className={btnGhost}
                         onClick={() => setEditing({ playlist: p })}
@@ -100,7 +102,7 @@ export function PlaylistsPage({
                         Edit
                       </button>
                       <button
-                        className={`${btnGhost} text-red-600 hover:bg-red-50`}
+                        className="rounded-md px-2.5 py-1.5 text-sm font-medium text-red-600 transition hover:bg-red-50 hover:text-red-700"
                         onClick={() => remove(p)}
                       >
                         Delete

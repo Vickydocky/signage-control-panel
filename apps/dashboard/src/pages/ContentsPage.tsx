@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Content, ContentType } from "@signage/shared";
-import { EmptyState, Spinner, btnGhost, btnPrimary } from "../components/ui";
+import { EmptyState, Spinner, btnPrimary } from "../components/ui";
 import type { ToastKind } from "../components/ui";
 import { api } from "../lib/api";
 import { formatDateTime } from "../lib/format";
@@ -38,7 +38,7 @@ function Preview({ content }: { content: Content }) {
   }
   if (content.tipe === "text") {
     return (
-      <p className="line-clamp-5 p-4 text-sm text-slate-700">
+      <p className="line-clamp-5 p-4 text-sm leading-relaxed text-zinc-700">
         {content.payload}
       </p>
     );
@@ -48,9 +48,21 @@ function Preview({ content }: { content: Content }) {
       href={content.payload}
       target="_blank"
       rel="noreferrer noopener"
-      className="flex h-full flex-col items-center justify-center gap-1 p-4 text-center text-sm text-indigo-600 hover:underline"
+      className="flex h-full flex-col items-center justify-center gap-2 p-4 text-center text-sm text-blue-600 hover:underline"
     >
-      <span className="text-2xl">🌐</span>
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 24 24"
+        className="h-6 w-6 text-zinc-400"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <circle cx="12" cy="12" r="9" />
+        <path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z" />
+      </svg>
       <span className="line-clamp-2 break-all">{content.payload}</span>
     </a>
   );
@@ -97,8 +109,10 @@ export function ContentsPage({
     <section>
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Contents</h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
+            Contents
+          </h1>
+          <p className="mt-1 text-sm text-zinc-500">
             {contents.length} item{contents.length === 1 ? "" : "s"}
           </p>
         </div>
@@ -108,15 +122,20 @@ export function ContentsPage({
       </div>
 
       {contents.length > 0 && (
-        <div className="mb-4 flex flex-wrap gap-2">
+        <div
+          role="group"
+          aria-label="Filter by type"
+          className="mb-5 inline-flex flex-wrap gap-1 rounded-lg border border-zinc-200 bg-white p-1"
+        >
           {FILTERS.map((f) => (
             <button
               key={f.value}
               onClick={() => setFilter(f.value)}
-              className={`rounded-full px-3 py-1 text-sm font-medium transition ${
+              aria-pressed={filter === f.value}
+              className={`rounded-md px-3 py-1 text-sm font-medium transition ${
                 filter === f.value
-                  ? "bg-indigo-600 text-white"
-                  : "bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50"
+                  ? "bg-zinc-900 text-white"
+                  : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
               }`}
             >
               {f.label}
@@ -128,14 +147,14 @@ export function ContentsPage({
       {error && (
         <p
           role="alert"
-          className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700"
+          className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
         >
           {error}
         </p>
       )}
 
       {loading ? (
-        <div className="flex items-center gap-2 text-sm text-slate-500">
+        <div className="flex items-center gap-2 text-sm text-zinc-500">
           <Spinner /> Loading…
         </div>
       ) : contents.length === 0 ? (
@@ -155,29 +174,29 @@ export function ContentsPage({
           {visible.map((c) => (
             <li
               key={c.id}
-              className="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white"
+              className="flex flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white transition-colors hover:border-zinc-300"
             >
-              <div className="h-40 overflow-hidden bg-slate-100">
+              <div className="h-40 overflow-hidden border-b border-zinc-100 bg-zinc-100">
                 <Preview content={c} />
               </div>
               <div className="flex flex-1 flex-col gap-1 p-4">
                 <div className="flex items-start justify-between gap-2">
                   <h3
-                    className="min-w-0 truncate font-medium text-slate-900"
+                    className="min-w-0 truncate text-sm font-medium text-zinc-900"
                     title={c.judul}
                   >
                     {c.judul}
                   </h3>
-                  <span className="shrink-0 rounded bg-slate-100 px-1.5 py-0.5 text-xs uppercase text-slate-600">
+                  <span className="shrink-0 rounded bg-zinc-100 px-1.5 py-0.5 text-[11px] font-medium uppercase tracking-wide text-zinc-600">
                     {c.tipe}
                   </span>
                 </div>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-zinc-500">
                   {formatDateTime(c.created_at)}
                 </p>
                 <div className="mt-2 flex justify-end">
                   <button
-                    className={`${btnGhost} text-red-600 hover:bg-red-50`}
+                    className="rounded-md px-2.5 py-1.5 text-sm font-medium text-red-600 transition hover:bg-red-50 hover:text-red-700"
                     onClick={() => remove(c)}
                   >
                     Delete

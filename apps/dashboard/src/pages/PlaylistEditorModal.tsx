@@ -5,7 +5,6 @@ import {
   Field,
   Modal,
   Spinner,
-  btnGhost,
   btnPrimary,
   btnSecondary,
   inputClass,
@@ -20,6 +19,26 @@ interface Row {
 
 const DEFAULT_DURATION = 10;
 const validDuration = (n: number) => Number.isInteger(n) && n >= 1 && n <= 3600;
+
+const iconBtn =
+  "rounded-md p-1.5 text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-900 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-zinc-500";
+
+function Icon({ d }: { d: string }) {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 16 16"
+      className="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d={d} />
+    </svg>
+  );
+}
 
 export function PlaylistEditorModal({
   playlist,
@@ -127,7 +146,7 @@ export function PlaylistEditorModal({
       onClose={onClose}
       wide
     >
-      <div className="space-y-4">
+      <div className="space-y-5">
         <Field label="Name">
           <input
             className={inputClass}
@@ -140,12 +159,12 @@ export function PlaylistEditorModal({
         </Field>
 
         <div>
-          <div className="mb-1 flex items-baseline justify-between">
-            <span className="text-sm font-medium text-slate-700">
+          <div className="mb-1.5 flex items-baseline justify-between gap-3">
+            <span className="text-sm font-medium text-zinc-700">
               Items, played in this order and repeated
             </span>
             {rows.length > 0 && (
-              <span className="text-xs text-slate-500">
+              <span className="shrink-0 text-xs text-zinc-500">
                 {rows.length} item{rows.length === 1 ? "" : "s"} ·{" "}
                 {totalSeconds}s per cycle
               </span>
@@ -153,11 +172,11 @@ export function PlaylistEditorModal({
           </div>
 
           {loading ? (
-            <div className="flex items-center gap-2 py-4 text-sm text-slate-500">
+            <div className="flex items-center gap-2 py-4 text-sm text-zinc-500">
               <Spinner /> Loading…
             </div>
           ) : rows.length === 0 ? (
-            <p className="rounded-lg border border-dashed border-slate-300 px-4 py-6 text-center text-sm text-slate-500">
+            <p className="rounded-lg border border-dashed border-zinc-300 bg-zinc-50/50 px-4 py-6 text-center text-sm text-zinc-500">
               No items yet. Add content below.
             </p>
           ) : (
@@ -165,21 +184,21 @@ export function PlaylistEditorModal({
               {rows.map((r, i) => (
                 <li
                   key={r.uid}
-                  className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2"
+                  className="flex items-center gap-3 rounded-lg border border-zinc-200 bg-white py-2 pl-3 pr-2"
                 >
-                  <span className="w-5 text-center text-sm text-slate-400">
+                  <span className="w-5 text-center text-sm tabular-nums text-zinc-400">
                     {i + 1}
                   </span>
                   <span
-                    className="min-w-0 flex-1 truncate text-sm font-medium text-slate-900"
+                    className="min-w-0 flex-1 truncate text-sm font-medium text-zinc-900"
                     title={r.content.judul}
                   >
                     {r.content.judul}
                   </span>
-                  <span className="shrink-0 rounded bg-slate-100 px-1.5 py-0.5 text-xs uppercase text-slate-600">
+                  <span className="shrink-0 rounded bg-zinc-100 px-1.5 py-0.5 text-[11px] font-medium uppercase tracking-wide text-zinc-600">
                     {r.content.tipe}
                   </span>
-                  <label className="flex shrink-0 items-center gap-1 text-xs text-slate-500">
+                  <label className="flex shrink-0 items-center gap-1.5 text-xs text-zinc-500">
                     <input
                       type="number"
                       min={1}
@@ -189,38 +208,42 @@ export function PlaylistEditorModal({
                         setDuration(r.uid, Number(e.target.value))
                       }
                       aria-label={`Seconds for ${r.content.judul}`}
-                      className={`w-16 rounded-md border px-2 py-1 text-sm ${validDuration(r.duration) ? "border-slate-300" : "border-red-400 bg-red-50"}`}
+                      className={`w-16 rounded-md border px-2 py-1 text-sm tabular-nums text-zinc-900 outline-none transition focus:ring-4 ${
+                        validDuration(r.duration)
+                          ? "border-zinc-300 focus:border-blue-600 focus:ring-blue-600/10"
+                          : "border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-500/10"
+                      }`}
                     />
                     s
                   </label>
-                  <div className="flex shrink-0">
+                  <div className="flex shrink-0 items-center">
                     <button
                       type="button"
-                      className={btnGhost}
+                      className={iconBtn}
                       disabled={i === 0}
                       onClick={() => move(i, -1)}
                       aria-label="Move up"
                     >
-                      ↑
+                      <Icon d="M3.5 10l4.5-4.5 4.5 4.5" />
                     </button>
                     <button
                       type="button"
-                      className={btnGhost}
+                      className={iconBtn}
                       disabled={i === rows.length - 1}
                       onClick={() => move(i, 1)}
                       aria-label="Move down"
                     >
-                      ↓
+                      <Icon d="M3.5 6l4.5 4.5L12.5 6" />
                     </button>
                     <button
                       type="button"
-                      className={`${btnGhost} text-red-600 hover:bg-red-50`}
+                      className="rounded-md p-1.5 text-zinc-400 transition hover:bg-red-50 hover:text-red-600"
                       onClick={() =>
                         setRows((prev) => prev.filter((x) => x.uid !== r.uid))
                       }
                       aria-label="Remove"
                     >
-                      ✕
+                      <Icon d="M3.5 3.5l9 9M12.5 3.5l-9 9" />
                     </button>
                   </div>
                 </li>
@@ -255,7 +278,7 @@ export function PlaylistEditorModal({
         </Field>
 
         <ErrorText message={error} />
-        <div className="flex justify-end gap-2 pt-2">
+        <div className="flex justify-end gap-2 border-t border-zinc-100 pt-4">
           <button type="button" className={btnSecondary} onClick={onClose}>
             Cancel
           </button>
