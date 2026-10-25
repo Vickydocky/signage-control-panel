@@ -10,9 +10,21 @@ import {
   inputClass,
 } from "../components/ui";
 import { api } from "../lib/api";
+import {
+  ArrowUp,
+  ArrowDown,
+  Trash2,
+  Plus,
+  Clock,
+  Layers,
+  Image,
+  Film,
+  FileText,
+  Globe,
+} from "lucide-react";
 
 interface Row {
-  uid: number; // hanya untuk key React; konten yang sama boleh muncul lebih dari sekali
+  uid: number;
   content: Content;
   duration: number;
 }
@@ -20,25 +32,12 @@ interface Row {
 const DEFAULT_DURATION = 10;
 const validDuration = (n: number) => Number.isInteger(n) && n >= 1 && n <= 3600;
 
-const iconBtn =
-  "rounded-md p-1.5 text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-900 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-zinc-500";
-
-function Icon({ d }: { d: string }) {
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 16 16"
-      className="h-4 w-4"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.75"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d={d} />
-    </svg>
-  );
-}
+const TYPE_ICONS = {
+  image: Image,
+  video: Film,
+  text: FileText,
+  url: Globe,
+};
 
 export function PlaylistEditorModal({
   playlist,
@@ -56,7 +55,6 @@ export function PlaylistEditorModal({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const nextUid = useRef(0);
-  // Kalau langkah kedua (simpan isi) gagal setelah playlist terbuat, percobaan ulang memakai playlist yang sama
   const createdId = useRef<string | null>(null);
 
   useEffect(() => {
@@ -142,121 +140,129 @@ export function PlaylistEditorModal({
 
   return (
     <Modal
-      title={playlist ? "Edit playlist" : "New playlist"}
+      title={playlist ? "Edit Playlist Sequence" : "Create New Playlist"}
       onClose={onClose}
       wide
     >
       <div className="space-y-5">
-        <Field label="Name">
+        <Field label="Playlist Title">
           <input
             className={inputClass}
             value={nama}
             onChange={(e) => setNama(e.target.value)}
-            placeholder="Lobby loop"
+            placeholder="e.g. Lobby Information Loop / Morning Showcase"
             maxLength={120}
             autoFocus
           />
         </Field>
 
         <div>
-          <div className="mb-1.5 flex items-baseline justify-between gap-3">
-            <span className="text-sm font-medium text-zinc-700">
-              Items, played in this order and repeated
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <span className="text-xs font-medium uppercase tracking-wider text-zinc-300">
+              Sequence Timeline
             </span>
             {rows.length > 0 && (
-              <span className="shrink-0 text-xs text-zinc-500">
-                {rows.length} item{rows.length === 1 ? "" : "s"} ·{" "}
-                {totalSeconds}s per cycle
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 px-2.5 py-0.5 text-xs font-semibold text-blue-300">
+                <Clock className="h-3 w-3" />
+                <span>{rows.length} slides • {totalSeconds}s total cycle</span>
               </span>
             )}
           </div>
 
           {loading ? (
-            <div className="flex items-center gap-2 py-4 text-sm text-zinc-500">
-              <Spinner /> Loading…
+            <div className="flex items-center gap-2 py-6 text-sm text-zinc-400 justify-center">
+              <Spinner /> Loading playlist sequence…
             </div>
           ) : rows.length === 0 ? (
-            <p className="rounded-lg border border-dashed border-zinc-300 bg-zinc-50/50 px-4 py-6 text-center text-sm text-zinc-500">
-              No items yet. Add content below.
-            </p>
+            <div className="rounded-xl border border-dashed border-white/10 bg-zinc-950/60 p-6 text-center text-xs text-zinc-400">
+              <Layers className="mx-auto h-7 w-7 text-zinc-600 mb-2" />
+              <span>No slides added yet. Select media items from the dropdown below to assemble your loop.</span>
+            </div>
           ) : (
-            <ol className="space-y-2">
-              {rows.map((r, i) => (
-                <li
-                  key={r.uid}
-                  className="flex items-center gap-3 rounded-lg border border-zinc-200 bg-white py-2 pl-3 pr-2"
-                >
-                  <span className="w-5 text-center text-sm tabular-nums text-zinc-400">
-                    {i + 1}
-                  </span>
-                  <span
-                    className="min-w-0 flex-1 truncate text-sm font-medium text-zinc-900"
-                    title={r.content.judul}
+            <ol className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+              {rows.map((r, i) => {
+                const Icon = TYPE_ICONS[r.content.tipe] || FileText;
+                return (
+                  <li
+                    key={r.uid}
+                    className="flex items-center gap-3 rounded-xl border border-white/10 bg-zinc-950/80 p-3 text-xs backdrop-blur-md shadow-sm transition hover:border-white/20"
                   >
-                    {r.content.judul}
-                  </span>
-                  <span className="shrink-0 rounded bg-zinc-100 px-1.5 py-0.5 text-[11px] font-medium uppercase tracking-wide text-zinc-600">
-                    {r.content.tipe}
-                  </span>
-                  <label className="flex shrink-0 items-center gap-1.5 text-xs text-zinc-500">
-                    <input
-                      type="number"
-                      min={1}
-                      max={3600}
-                      value={r.duration}
-                      onChange={(e) =>
-                        setDuration(r.uid, Number(e.target.value))
-                      }
-                      aria-label={`Seconds for ${r.content.judul}`}
-                      className={`w-16 rounded-md border px-2 py-1 text-sm tabular-nums text-zinc-900 outline-none transition focus:ring-4 ${
-                        validDuration(r.duration)
-                          ? "border-zinc-300 focus:border-blue-600 focus:ring-blue-600/10"
-                          : "border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-500/10"
-                      }`}
-                    />
-                    s
-                  </label>
-                  <div className="flex shrink-0 items-center">
-                    <button
-                      type="button"
-                      className={iconBtn}
-                      disabled={i === 0}
-                      onClick={() => move(i, -1)}
-                      aria-label="Move up"
-                    >
-                      <Icon d="M3.5 10l4.5-4.5 4.5 4.5" />
-                    </button>
-                    <button
-                      type="button"
-                      className={iconBtn}
-                      disabled={i === rows.length - 1}
-                      onClick={() => move(i, 1)}
-                      aria-label="Move down"
-                    >
-                      <Icon d="M3.5 6l4.5 4.5L12.5 6" />
-                    </button>
-                    <button
-                      type="button"
-                      className="rounded-md p-1.5 text-zinc-400 transition hover:bg-red-50 hover:text-red-600"
-                      onClick={() =>
-                        setRows((prev) => prev.filter((x) => x.uid !== r.uid))
-                      }
-                      aria-label="Remove"
-                    >
-                      <Icon d="M3.5 3.5l9 9M12.5 3.5l-9 9" />
-                    </button>
-                  </div>
-                </li>
-              ))}
+                    <span className="grid h-6 w-6 shrink-0 place-items-center rounded-lg bg-white/10 font-mono text-[11px] font-bold text-zinc-300">
+                      {i + 1}
+                    </span>
+
+                    <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/5 text-blue-400">
+                      <Icon className="h-4 w-4" />
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium text-white text-xs">
+                        {r.content.judul}
+                      </p>
+                      <span className="text-[10px] uppercase tracking-wider text-zinc-500">
+                        {r.content.tipe}
+                      </span>
+                    </div>
+
+                    {/* Duration input */}
+                    <div className="flex items-center gap-1.5 shrink-0 bg-zinc-900 border border-zinc-700/60 rounded-lg px-2 py-1">
+                      <input
+                        type="number"
+                        min={1}
+                        max={3600}
+                        value={r.duration}
+                        onChange={(e) =>
+                          setDuration(r.uid, Number(e.target.value))
+                        }
+                        aria-label={`Seconds for ${r.content.judul}`}
+                        className="w-12 bg-transparent text-center font-mono text-xs font-semibold text-white outline-none"
+                      />
+                      <span className="text-[10px] text-zinc-400">sec</span>
+                    </div>
+
+                    {/* Reorder & Delete */}
+                    <div className="flex shrink-0 items-center gap-0.5">
+                      <button
+                        type="button"
+                        className="rounded-lg p-1.5 text-zinc-400 hover:bg-white/10 hover:text-white transition disabled:opacity-20"
+                        disabled={i === 0}
+                        onClick={() => move(i, -1)}
+                        title="Move slide up"
+                      >
+                        <ArrowUp className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        className="rounded-lg p-1.5 text-zinc-400 hover:bg-white/10 hover:text-white transition disabled:opacity-20"
+                        disabled={i === rows.length - 1}
+                        onClick={() => move(i, 1)}
+                        title="Move slide down"
+                      >
+                        <ArrowDown className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        className="rounded-lg p-1.5 text-zinc-400 hover:bg-red-500/20 hover:text-red-400 transition"
+                        onClick={() =>
+                          setRows((prev) => prev.filter((x) => x.uid !== r.uid))
+                        }
+                        title="Remove slide from playlist"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </li>
+                );
+              })}
             </ol>
           )}
         </div>
 
         <Field
-          label="Add content"
+          label="Add Content Slide to Loop"
           hint={
             contents?.length === 0
-              ? "No content yet. Create some in the Contents tab first."
+              ? "No content yet. Create some in the Media Library tab first."
               : undefined
           }
         >
@@ -267,7 +273,7 @@ export function PlaylistEditorModal({
             onChange={(e) => add(e.target.value)}
           >
             <option value="">
-              {contents ? "Choose content to add…" : "Loading…"}
+              {contents ? "+ Select media to append to sequence…" : "Loading library…"}
             </option>
             {contents?.map((c) => (
               <option key={c.id} value={c.id}>
@@ -278,7 +284,8 @@ export function PlaylistEditorModal({
         </Field>
 
         <ErrorText message={error} />
-        <div className="flex justify-end gap-2 border-t border-zinc-100 pt-4">
+
+        <div className="flex justify-end gap-2 border-t border-zinc-800/80 pt-4">
           <button type="button" className={btnSecondary} onClick={onClose}>
             Cancel
           </button>
@@ -288,10 +295,11 @@ export function PlaylistEditorModal({
             disabled={!canSave}
             onClick={save}
           >
-            {saving ? "Saving…" : "Save playlist"}
+            {saving ? "Saving…" : "Save Playlist Sequence"}
           </button>
         </div>
       </div>
     </Modal>
   );
 }
+

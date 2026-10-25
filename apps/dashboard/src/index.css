@@ -1,10 +1,5 @@
 @import "tailwindcss";
 
-/*
-  Font: Inter kalau tersedia, kalau tidak jatuh ke font sistem.
-  Opsional: `npm i @fontsource-variable/inter` lalu tambahkan
-  `import "@fontsource-variable/inter";` di main.tsx.
-*/
 @theme {
   --font-sans:
     "Inter Variable", "Inter", ui-sans-serif, system-ui, -apple-system,
@@ -13,26 +8,91 @@
 
 @layer base {
   html {
-    color-scheme: light;
+    color-scheme: dark;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
   }
 
   body {
-    background-color: var(--color-zinc-50);
-    color: var(--color-zinc-900);
+    background-color: #090d16;
+    color: #f1f5f9;
     font-feature-settings: "cv11", "ss01";
+    min-height: 100vh;
   }
 
   ::selection {
-    background-color: var(--color-blue-600);
-    color: white;
+    background-color: rgba(59, 130, 246, 0.4);
+    color: #ffffff;
   }
 
-  /* Tombol dan link yang bisa diklik pakai kursor tangan (v4 default-nya panah) */
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]) {
     cursor: pointer;
   }
+
+  /* Custom sleek scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.25);
+  }
 }
+
+/* Animations & Glassmorphism helpers */
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes floatSlow {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-float-slow {
+  animation: floatSlow 6s ease-in-out infinite;
+}
+
+.glass-panel {
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-card {
+  background: rgba(18, 26, 47, 0.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.glass-card:hover {
+  border-color: rgba(99, 102, 241, 0.3);
+  box-shadow: 0 10px 30px -10px rgba(79, 70, 229, 0.15);
+}
+
