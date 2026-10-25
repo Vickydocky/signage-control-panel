@@ -3,15 +3,17 @@ import { type ConnectionState, connectSocket } from "@signage/client";
 import {
   type Content,
   type Device,
+  type PlaylistEntry,
   type ServerToDeviceMessage,
   WS_CLOSE,
-} from "@signage/shared";
+} from "@signage/shared"; // BERUBAH: tambah PlaylistEntry
 import { type Credentials, toWsUrl } from "../lib/config";
+import { playlistSignature, usePlayback } from "./usePlayback"; // BARU
 
 export interface Shown {
   content: Content;
-  /** Berubah di setiap push, supaya konten yang sama bisa diputar ulang dengan animasi masuk */
-  key: number;
+  /** Berubah setiap konten baru muncul, supaya animasi masuk berulang (push yang sama dua kali pun) */
+  key: string | number; // BERUBAH: sebelumnya number saja
 }
 
 export interface DeviceSocket {
@@ -42,7 +44,8 @@ function describeClose(code: number): string {
 export function useDeviceSocket(credentials: Credentials): DeviceSocket {
   const [connection, setConnection] = useState<ConnectionState>("connecting");
   const [device, setDevice] = useState<Device | null>(null);
-  const [shown, setShown] = useState<Shown | null>(null);
+  const [playlist, setPlaylist] = useState<PlaylistEntry[]>([]); // BARU
+  const [pushed, setPushed] = useState<Shown | null>(null); // BERUBAH: dulu bernama `shown`
   const [problem, setProblem] = useState<string | null>(null);
   const expiry = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -50,7 +53,15 @@ export function useDeviceSocket(credentials: Credentials): DeviceSocket {
 
   useEffect(() => {
     setProblem(null);
-    setShown(null);
+    setPushed(null);
+    setPlaylist([]); // BARU
+
+    // BARU: server mengirim ulang playlist yang sama setiap reconnect. Jangan ganti state kalau isinya
+    // tidak berubah, supaya putaran yang sedang berjalan tidak terulang dari awal.
+    const applyPlaylist = (next: PlaylistEntry[]) =>
+      setPlaylist((prev) =>
+        playlistSignature(prev) === playlistSignature(next) ? prev : next,
+      );
 
     const socket = connectSocket({
       url: toWsUrl({ serverUrl, deviceId, token }),
@@ -64,20 +75,22 @@ export function useDeviceSocket(credentials: Credentials): DeviceSocket {
         switch (msg.type) {
           case "welcome":
             setDevice(msg.device);
+            applyPlaylist(msg.playlist); // BARU
+            break;
+          case "playlist_updated": // BERUBAH: sebelumnya kosong
+            applyPlaylist(msg.playlist);
             break;
           case "push_content":
             clearTimeout(expiry.current);
-            setShown({ content: msg.content, key: Date.now() });
-            // Dengan durasi: tampil sebentar lalu kembali menunggu. Tanpa durasi: tampil sampai diganti.
+            setPushed({ content: msg.content, key: Date.now() });
+            // Dengan durasi: tampil sebentar lalu kembali ke playlist. Tanpa durasi: tampil sampai diganti.
             if (msg.duration_seconds) {
               expiry.current = setTimeout(
-                () => setShown(null),
+                () => setPushed(null),
                 msg.duration_seconds * 1000,
               );
             }
             break;
-          case "playlist_updated":
-            break; // diisi di tahap playlist
           case "error":
             console.warn("Server:", msg.message);
             break;
@@ -90,6 +103,8 @@ export function useDeviceSocket(credentials: Credentials): DeviceSocket {
       clearTimeout(expiry.current);
     };
   }, [serverUrl, deviceId, token]);
+
+  const shown = usePlayback(playlist, pushed); // BARU
 
   return { connection, device, shown, problem };
 }
