@@ -10,6 +10,7 @@ import {
 } from "../components/ui";
 import type { ToastKind } from "../components/ui";
 import type { UseDevices } from "../hooks/useDevices";
+import { usePlaylists } from "../hooks/usePlaylists";
 import { api } from "../lib/api";
 import { timeAgo } from "../lib/format";
 import { DeviceFormModal, PushModal, TokenModal } from "./DeviceModals";
@@ -34,6 +35,11 @@ export function DevicesPage({
   const [status, setStatus] = useState<DeviceStatus | "all">("all");
   const [modal, setModal] = useState<Modal | null>(null);
   const now = useNow();
+  const { playlists } = usePlaylists();
+  const playlistName = useMemo(
+    () => new Map(playlists.map((p) => [p.id, p.nama])),
+    [playlists],
+  );
 
   const visible = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -144,11 +150,12 @@ export function DevicesPage({
         <EmptyState title="No devices match your filters" />
       ) : (
         <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
-          <table className="w-full min-w-[640px] text-left text-sm">
+          <table className="w-full min-w-[760px] text-left text-sm">
             <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
               <tr>
                 <th className="px-4 py-3 font-medium">Name</th>
                 <th className="px-4 py-3 font-medium">Location</th>
+                <th className="px-4 py-3 font-medium">Playlist</th>
                 <th className="px-4 py-3 font-medium">Status</th>
                 <th className="px-4 py-3 font-medium">Last seen</th>
                 <th className="px-4 py-3 text-right font-medium">Actions</th>
@@ -162,6 +169,11 @@ export function DevicesPage({
                   </td>
                   <td className="px-4 py-3 text-slate-600">
                     {d.lokasi ?? "—"}
+                  </td>
+                  <td className="px-4 py-3 text-slate-600">
+                    {d.playlist_id
+                      ? (playlistName.get(d.playlist_id) ?? "…")
+                      : "—"}
                   </td>
                   <td className="px-4 py-3">
                     <StatusBadge status={d.status} />
@@ -213,6 +225,7 @@ export function DevicesPage({
       {modal?.kind === "form" && (
         <DeviceFormModal
           device={modal.device}
+          playlists={playlists}
           onClose={() => setModal(null)}
           onSaved={(saved, created) => {
             notify(created ? "Device created" : "Device updated");

@@ -6,7 +6,7 @@ import {
   useState,
 } from "react";
 import type { DeviceStatus } from "@signage/shared";
-import type { ConnectionState } from '@signage/client';
+import type { ConnectionState } from "@signage/client";
 
 // ---------- Kelas Tailwind yang dipakai berulang ----------
 const btn =
@@ -73,10 +73,12 @@ export function Modal({
   title,
   onClose,
   children,
+  wide = false,
 }: {
   title: string;
   onClose: () => void;
   children: ReactNode;
+  wide?: boolean;
 }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -93,7 +95,7 @@ export function Modal({
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
+        className={`w-full ${wide ? "max-w-2xl" : "max-w-md"} max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-xl`}
       >
         <div className="mb-4 flex items-start justify-between gap-4">
           <h2 className="text-lg font-semibold text-slate-900">{title}</h2>

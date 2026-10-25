@@ -3,15 +3,19 @@ import { ConnectionPill, ToastView, useToast } from "./components/ui";
 import { useDevices } from "./hooks/useDevices";
 import { ContentsPage } from "./pages/ContentsPage";
 import { DevicesPage } from "./pages/DevicesPage";
+import { PlaylistsPage } from "./pages/PlaylistsPage";
 
-type Tab = "devices" | "contents";
+type Tab = "devices" | "contents" | "playlists";
 const TABS: { id: Tab; label: string }[] = [
   { id: "devices", label: "Devices" },
   { id: "contents", label: "Contents" },
+  { id: "playlists", label: "Playlists" },
 ];
 
-const tabFromHash = (): Tab =>
-  window.location.hash === "#contents" ? "contents" : "devices";
+const tabFromHash = (): Tab => {
+  const hash = window.location.hash.slice(1);
+  return hash === "contents" || hash === "playlists" ? hash : "devices";
+};
 
 export default function App() {
   const [tab, setTab] = useState<Tab>(tabFromHash);
@@ -65,11 +69,9 @@ export default function App() {
       )}
 
       <main className="mx-auto max-w-6xl px-4 py-8">
-        {tab === "devices" ? (
-          <DevicesPage {...devices} notify={notify} />
-        ) : (
-          <ContentsPage notify={notify} />
-        )}
+        {tab === "devices" && <DevicesPage {...devices} notify={notify} />}
+        {tab === "contents" && <ContentsPage notify={notify} />}
+        {tab === "playlists" && <PlaylistsPage notify={notify} />}
       </main>
 
       <ToastView toast={toast} />

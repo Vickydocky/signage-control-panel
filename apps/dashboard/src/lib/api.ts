@@ -3,10 +3,16 @@ import type {
   Content,
   CreateContentInput,
   CreateDeviceInput,
+  CreatePlaylistInput,
   Device,
   DeviceWithToken,
   Paginated,
+  Playlist,
+  PlaylistDetail,
+  PlaylistSummary,
+  ReplacePlaylistItemsInput,
   UpdateDeviceInput,
+  UpdatePlaylistInput,
 } from "@signage/shared";
 
 export const API_URL: string =
@@ -106,5 +112,17 @@ export const api = {
     },
     remove: (id: string) =>
       request<void>(`/contents/${id}`, { method: "DELETE" }),
+  },
+  playlists: {
+    list: () => request<PlaylistSummary[]>("/playlists"),
+    get: (id: string) => request<PlaylistDetail>(`/playlists/${id}`),
+    create: (input: CreatePlaylistInput) =>
+      request<PlaylistDetail>("/playlists", json("POST", input)),
+    rename: (id: string, input: UpdatePlaylistInput) =>
+      request<Playlist>(`/playlists/${id}`, json("PATCH", input)),
+    replaceItems: (id: string, input: ReplacePlaylistItemsInput) =>
+      request<PlaylistDetail>(`/playlists/${id}/items`, json("PUT", input)),
+    remove: (id: string) =>
+      request<void>(`/playlists/${id}`, { method: "DELETE" }),
   },
 };

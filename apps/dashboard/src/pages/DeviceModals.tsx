@@ -1,5 +1,10 @@
 import { type FormEvent, useEffect, useState } from "react";
-import type { Content, Device, DeviceWithToken } from "@signage/shared";
+import type {
+  Content,
+  Device,
+  DeviceWithToken,
+  PlaylistSummary,
+} from "@signage/shared";
 import {
   Modal,
   ErrorText,
@@ -20,15 +25,18 @@ const messageOf = (err: unknown) =>
 // ---------------------------------------------------------------------
 export function DeviceFormModal({
   device,
+  playlists,
   onClose,
   onSaved,
 }: {
   device?: Device;
+  playlists: PlaylistSummary[];
   onClose: () => void;
   onSaved: (device: DeviceWithToken, created: boolean) => void;
 }) {
   const [nama, setNama] = useState(device?.nama ?? "");
   const [lokasi, setLokasi] = useState(device?.lokasi ?? "");
+  const [playlistId, setPlaylistId] = useState(device?.playlist_id ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,7 +47,10 @@ export function DeviceFormModal({
     try {
       const input = { nama: nama.trim(), lokasi: lokasi.trim() || null };
       const saved = device
-        ? await api.devices.update(device.id, input)
+        ? await api.devices.update(device.id, {
+            ...input,
+            playlist_id: playlistId || null,
+          })
         : await api.devices.create(input);
       onSaved(saved, !device);
     } catch (err) {
@@ -71,6 +82,25 @@ export function DeviceFormModal({
             maxLength={200}
           />
         </Field>
+        {device && (
+          <Field
+            label="Playlist"
+            hint="Played on repeat while no content is being pushed"
+          >
+            <select
+              className={inputClass}
+              value={playlistId}
+              onChange={(e) => setPlaylistId(e.target.value)}
+            >
+              <option value="">None</option>
+              {playlists.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.nama} ({p.item_count} item{p.item_count === 1 ? "" : "s"})
+                </option>
+              ))}
+            </select>
+          </Field>
+        )}
         <ErrorText message={error} />
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" className={btnSecondary} onClick={onClose}>
