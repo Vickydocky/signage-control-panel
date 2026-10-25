@@ -1,11 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Device, ServerToDashboardMessage } from "@signage/shared";
 import { WS_URL, api } from "../lib/api";
-import {
-  type ConnectionState,
-  type ReconnectingSocket,
-  connectSocket,
-} from "../lib/socket";
+import { type ConnectionState, type ReconnectingSocket, connectSocket } from '@signage/client';
 
 export interface UseDevices {
   devices: Device[];

@@ -6,6 +6,8 @@ interface Options {
   url: string;
   onMessage: (data: unknown) => void;
   onStatus: (state: ConnectionState) => void;
+  /** Dipanggil saat server menutup dengan kode "jangan reconnect" (token salah, device dihapus, dst) */
+  onClosed?: (code: number, reason: string) => void; // BARU
 }
 
 export interface ReconnectingSocket {
@@ -27,7 +29,9 @@ export function connectSocket({
   url,
   onMessage,
   onStatus,
+  onClosed,
 }: Options): ReconnectingSocket {
+  // BERUBAH: tambah onClosed
   let ws: WebSocket | null = null;
   let attempt = 0;
   let retryTimer: ReturnType<typeof setTimeout> | undefined;
@@ -45,7 +49,8 @@ export function connectSocket({
       socket.close();
     }, CONNECT_TIMEOUT_MS);
 
-    const fail = (code?: number) => {
+    const fail = (code?: number, reason = "") => {
+      // BERUBAH: tambah parameter reason
       if (down) return;
       down = true;
       clearTimeout(connectTimer);
@@ -55,6 +60,7 @@ export function connectSocket({
       // Mencoba lagi tidak akan membantu (token salah, dst): berhenti
       if (code !== undefined && WS_NO_RECONNECT_CODES.includes(code)) {
         onStatus("closed");
+        onClosed?.(code, reason); // BARU
         return;
       }
 
@@ -83,7 +89,7 @@ export function connectSocket({
 
     // Koneksi gagal dibuat (server mati, ditolak): sebagian lingkungan hanya memicu 'error'
     socket.onerror = () => fail();
-    socket.onclose = (event) => fail(event.code);
+    socket.onclose = (event) => fail(event.code, event.reason); // BERUBAH: teruskan reason
   };
 
   open();

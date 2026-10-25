@@ -6,7 +6,7 @@ import {
   useState,
 } from "react";
 import type { DeviceStatus } from "@signage/shared";
-import type { ConnectionState } from "../lib/socket";
+import type { ConnectionState } from '@signage/client';
 
 // ---------- Kelas Tailwind yang dipakai berulang ----------
 const btn =
