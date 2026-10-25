@@ -87,12 +87,19 @@ export type CreateContentInput = z.infer<typeof createContentSchema>;
 export type UpdateContentInput = z.infer<typeof updateContentSchema>;
 export type ListDevicesQuery = z.infer<typeof listDevicesQuerySchema>;
 export type ListContentsQuery = z.infer<typeof listContentsQuerySchema>;
+export type LoginInput = z.infer<typeof loginSchema>;
 export type CreatePlaylistInput = z.infer<typeof createPlaylistSchema>;
 export type UpdatePlaylistInput = z.infer<typeof updatePlaylistSchema>;
 /** z.input: `duration_seconds` boleh dikosongkan oleh pengirim (default 10 diisi server) */
 export type ReplacePlaylistItemsInput = z.input<
   typeof replacePlaylistItemsSchema
 >;
+
+// ---------- Auth ----------
+export const loginSchema = z.object({
+  username: z.string().trim().min(1, "Required").max(50),
+  password: z.string().min(1, "Required").max(200),
+});
 
 // ---------- WebSocket: pesan dashboard -> server ----------
 export const dashboardMessageSchema = z.discriminatedUnion("type", [

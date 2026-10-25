@@ -32,6 +32,10 @@ export function registerRealtime(app: FastifyInstance) {
   //    terminate() memicu event 'close', dan handler close yang menandai device offline.
   const heartbeat = setInterval(() => {
     for (const t of hub.all()) {
+      if (t.expiresAt && Date.now() >= t.expiresAt) {
+        closeGracefully(t.ws, WS_CLOSE.UNAUTHORIZED, "Session expired");
+        continue;
+      }
       if (!t.isAlive) {
         t.ws.terminate();
         continue;

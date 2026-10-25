@@ -57,6 +57,14 @@ export interface PlaylistDetail extends Playlist {
   items: PlaylistEntry[];
 }
 
+/** Hasil login admin */
+export interface LoginResponse {
+  token: string;
+  /** Waktu token kedaluwarsa, milidetik sejak epoch */
+  expiresAt: number;
+  admin: { id: string; username: string };
+}
+
 // ---------------------------------------------------------------------
 // WebSocket protocol
 //

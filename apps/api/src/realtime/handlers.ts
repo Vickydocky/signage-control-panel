@@ -135,13 +135,19 @@ async function handleDashboard(
 ) {
   const { hub, log } = ctx;
 
-  if (!(await verifyDashboardToken(token))) {
+  const session = await verifyDashboardToken(token);
+  if (!session) {
     closeGracefully(ws, WS_CLOSE.UNAUTHORIZED, "Unauthorized");
     return;
   }
   if (ws.readyState !== WebSocket.OPEN) return;
 
-  const tracked: Tracked = { ws, isAlive: true, lastDbTouch: 0 };
+  const tracked: Tracked = {
+    ws,
+    isAlive: true,
+    lastDbTouch: 0,
+    expiresAt: session.expiresAt,
+  };
   hub.addDashboard(tracked);
 
   ws.on("pong", () => {

@@ -1,5 +1,6 @@
 import cors from "@fastify/cors";
 import multipart from "@fastify/multipart";
+import rateLimit from "@fastify/rate-limit";
 import { MAX_UPLOAD_BYTES } from "@signage/shared";
 import Fastify from "fastify";
 import { ZodError } from "zod";
@@ -11,6 +12,7 @@ import { registerRealtime } from "./realtime";
 
 export async function buildApp() {
   const app = Fastify({
+    trustProxy: env.TRUST_PROXY,
     logger: {
       level: env.LOG_LEVEL,
       transport: env.isDev
@@ -22,6 +24,16 @@ export async function buildApp() {
   await app.register(cors, {
     origin: env.corsOrigins,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+  });
+  // global: false => hanya rute yang memasang config.rateLimit yang dibatasi (mis. login)
+  await app.register(rateLimit, {
+    global: false,
+    errorResponseBuilder: (_req, context) =>
+      new AppError(
+        429,
+        "RATE_LIMITED",
+        `Too many attempts. Try again in ${Math.ceil(context.ttl / 1000)} seconds.`,
+      ),
   });
   await app.register(multipart, {
     limits: { fileSize: MAX_UPLOAD_BYTES, files: 1, fields: 5 },

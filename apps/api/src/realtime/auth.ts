@@ -1,5 +1,6 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import { AppError } from "../lib/errors";
+import { verifyToken } from '../modules/auth/auth.service';
 import { getDevice } from "../modules/devices/devices.service";
 
 const sha256 = (value: string) => createHash("sha256").update(value).digest();
@@ -22,13 +23,9 @@ export async function verifyDeviceToken(
   }
 }
 
-/**
- * Autentikasi dashboard.
- * TODO (tahap JWT): verifikasi JWT admin di sini. Sementara semua dashboard diterima,
- * sama seperti endpoint REST yang belum diproteksi.
- */
-export async function verifyDashboardToken(
-  _token: string | undefined,
-): Promise<boolean> {
-  return true;
+/** Sesi dashboard yang sah, atau null. `expiresAt` dalam milidetik. */
+export async function verifyDashboardToken(token: string | undefined): Promise<{ expiresAt: number } | null> {
+  if (!token) return null;
+  const session = await verifyToken(token);
+  return session ? { expiresAt: session.exp * 1000 } : null;
 }

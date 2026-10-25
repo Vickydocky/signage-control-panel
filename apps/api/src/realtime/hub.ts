@@ -13,6 +13,8 @@ export interface Tracked {
   deviceId?: string;
   /** Kapan terakhir kali last_seen ditulis ke DB (untuk throttling) */
   lastDbTouch: number;
+  /** Hanya untuk dashboard: kapan JWT kedaluwarsa (ms). Koneksi ditutup setelahnya. */
+  expiresAt?: number;
 }
 
 type Outgoing = ServerToDeviceMessage | ServerToDashboardMessage;
