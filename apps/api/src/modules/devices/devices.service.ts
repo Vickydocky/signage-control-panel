@@ -75,6 +75,7 @@ export async function updateDevice(
   const patch: Record<string, unknown> = {};
   if (input.nama !== undefined) patch.nama = input.nama;
   if (input.lokasi !== undefined) patch.lokasi = input.lokasi?.trim() || null;
+  if (input.playlist_id !== undefined) patch.playlist_id = input.playlist_id;
 
   const { data, error } = await supabase
     .from("devices")
@@ -87,6 +88,8 @@ export async function updateDevice(
 
   const device = data as DeviceWithToken;
   events.emit("device:changed", stripToken(device));
+  if (input.playlist_id !== undefined)
+    events.emit("device:playlist_changed", id);
   return device;
 }
 
@@ -166,4 +169,27 @@ export async function resetAllDevicesOffline(): Promise<number> {
     .select("id");
   if (error) throw fromDbError(error);
   return data?.length ?? 0;
+}
+
+/** Satu device tanpa token; null jika tidak ada */
+export async function getDevicePublic(id: string): Promise<Device | null> {
+  const { data, error } = await supabase
+    .from("devices")
+    .select(COLUMNS)
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw fromDbError(error);
+  return (data as Device | null) ?? null;
+}
+
+/** ID semua device yang memakai playlist tertentu */
+export async function getDeviceIdsByPlaylist(
+  playlistId: string,
+): Promise<string[]> {
+  const { data, error } = await supabase
+    .from("devices")
+    .select("id")
+    .eq("playlist_id", playlistId);
+  if (error) throw fromDbError(error);
+  return (data ?? []).map((row) => row.id as string);
 }

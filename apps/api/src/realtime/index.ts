@@ -6,6 +6,7 @@ import { events } from "../lib/events";
 import { resetAllDevicesOffline } from "../modules/devices/devices.service";
 import { type Ctx, handleConnection } from "./handlers";
 import { Hub, closeGracefully } from "./hub";
+import { pushPlaylistToDevice, pushPlaylistToDevices } from "./playlist";
 
 /** Pasang WebSocket server di atas HTTP server milik Fastify (port yang sama, path /ws) */
 export function registerRealtime(app: FastifyInstance) {
@@ -51,6 +52,16 @@ export function registerRealtime(app: FastifyInstance) {
   });
   events.on("device:token_rotated", (deviceId) => {
     hub.closeDevice(deviceId, WS_CLOSE.TOKEN_ROTATED, "Token rotated");
+  });
+  events.on("device:playlist_changed", (deviceId) => {
+    pushPlaylistToDevice(hub, deviceId).catch((err) =>
+      app.log.error({ err, deviceId }, "failed to push playlist"),
+    );
+  });
+  events.on("playlist:changed", (playlistId) => {
+    pushPlaylistToDevices(hub, playlistId).catch((err) =>
+      app.log.error({ err, playlistId }, "failed to push playlist"),
+    );
   });
 
   // 4) Start: koneksi hanya ada di memori, jadi sisa status "online" dari proses lama pasti basi

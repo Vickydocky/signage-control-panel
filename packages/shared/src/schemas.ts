@@ -29,6 +29,7 @@ export const createDeviceSchema = z.object({
 });
 
 export const updateDeviceSchema = createDeviceSchema
+  .extend({ playlist_id: uuidSchema.nullable() })
   .partial()
   .refine((v) => Object.keys(v).length > 0, "At least one field is required");
 
@@ -51,6 +52,20 @@ export const updateContentSchema = z
   })
   .refine((v) => Object.keys(v).length > 0, "At least one field is required");
 
+export const createPlaylistSchema = z.object({ nama: title(120) });
+export const updatePlaylistSchema = createPlaylistSchema;
+
+export const replacePlaylistItemsSchema = z.object({
+  items: z
+    .array(
+      z.object({
+        content_id: uuidSchema,
+        duration_seconds: z.number().int().min(1).max(3600).default(10),
+      }),
+    )
+    .max(100),
+});
+
 // ---------- List queries ----------
 const listQuery = z.object({
   page: z.coerce.number().int().min(1).default(1),
@@ -72,6 +87,12 @@ export type CreateContentInput = z.infer<typeof createContentSchema>;
 export type UpdateContentInput = z.infer<typeof updateContentSchema>;
 export type ListDevicesQuery = z.infer<typeof listDevicesQuerySchema>;
 export type ListContentsQuery = z.infer<typeof listContentsQuerySchema>;
+export type CreatePlaylistInput = z.infer<typeof createPlaylistSchema>;
+export type UpdatePlaylistInput = z.infer<typeof updatePlaylistSchema>;
+/** z.input: `duration_seconds` boleh dikosongkan oleh pengirim (default 10 diisi server) */
+export type ReplacePlaylistItemsInput = z.input<
+  typeof replacePlaylistItemsSchema
+>;
 
 // ---------- WebSocket: pesan dashboard -> server ----------
 export const dashboardMessageSchema = z.discriminatedUnion("type", [

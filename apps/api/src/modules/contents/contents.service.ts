@@ -10,8 +10,10 @@ import {
 } from "@signage/shared";
 import { env } from "../../config/env";
 import { AppError, badRequest, fromDbError, notFound } from "../../lib/errors";
+import { events } from "../../lib/events";
 import { pageRange, sanitizeSearch } from "../../lib/search";
 import { supabase } from "../../lib/supabase";
+import { playlistIdsContaining } from "../playlists/playlists.service";
 
 const COLUMNS = "id,judul,tipe,payload,storage_path,created_at,updated_at";
 const bucket = () => supabase.storage.from(env.SUPABASE_STORAGE_BUCKET);
@@ -147,14 +149,24 @@ export async function updateContent(
     .select(COLUMNS)
     .single();
   if (error) throw fromDbError(error);
+  await notifyPlaylists(await playlistIdsContaining(id));
   return data as Content;
+}
+
+/** Layar yang memutar playlist-playlist ini perlu menerima isi terbaru */ // BARU
+async function notifyPlaylists(playlistIds: string[]) {
+  for (const playlistId of playlistIds)
+    events.emit("playlist:changed", playlistId);
 }
 
 export async function removeContent(id: string): Promise<void> {
   const existing = await getContent(id);
+  // Harus dicatat sebelum dihapus: database ikut menghapus item playlist yang memuat konten ini
+  const affectedPlaylists = await playlistIdsContaining(id); // BARU
 
   const { error } = await supabase.from("contents").delete().eq("id", id);
   if (error) throw fromDbError(error);
+  await notifyPlaylists(affectedPlaylists); // BARU
 
   // Best-effort: kegagalan hapus file tidak menggagalkan request
   if (existing.storage_path) {

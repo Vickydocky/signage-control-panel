@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { contentsRoutes } from '../modules/contents/contents.routes';
 import { devicesRoutes } from '../modules/devices/devices.routes';
+import { playlistsRoutes } from '../modules/playlists/playlists.routes';
 
 /**
  * Semua endpoint admin ada di bawah /api.
@@ -9,4 +10,5 @@ import { devicesRoutes } from '../modules/devices/devices.routes';
 export async function apiRoutes(app: FastifyInstance) {
   await app.register(devicesRoutes);
   await app.register(contentsRoutes);
+  await app.register(playlistsRoutes);
 }

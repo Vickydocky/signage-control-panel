@@ -4,6 +4,7 @@ import { z } from "zod";
 import { WS_CLOSE, dashboardMessageSchema, uuidSchema } from "@signage/shared";
 import { AppError } from "../lib/errors";
 import { getContent } from "../modules/contents/contents.service";
+import { getPlaylistEntries } from "../modules/playlists/playlists.service";
 import { getAllDevices, touchDevice } from "../modules/devices/devices.service";
 import { verifyDashboardToken, verifyDeviceToken } from "./auth";
 import { Hub, type Tracked, closeGracefully, send } from "./hub";
@@ -113,7 +114,15 @@ async function handleDevice(
     return;
   }
   log.info({ deviceId }, "device connected");
-  send(ws, { type: "welcome", device, playlist: [] }); // playlist diisi di tahap playlist
+
+  // Kegagalan memuat playlist tidak boleh mencegah layar tersambung: kirim kosong, layar tetap online
+  const playlist = device.playlist_id
+    ? await getPlaylistEntries(device.playlist_id).catch((err) => {
+        log.error({ err, deviceId }, "failed to load playlist for welcome");
+        return [];
+      })
+    : [];
+  send(ws, { type: "welcome", device, playlist });
 }
 
 // ---------------------------------------------------------------------

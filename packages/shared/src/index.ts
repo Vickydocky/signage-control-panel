@@ -2,8 +2,8 @@
 // Shared domain types & WebSocket protocol (kontrak API <-> dashboard <-> device)
 // =====================================================================
 
-export type DeviceStatus = 'online' | 'offline';
-export type ContentType = 'image' | 'video' | 'text' | 'url';
+export type DeviceStatus = "online" | "offline";
+export type ContentType = "image" | "video" | "text" | "url";
 
 export interface Device {
   id: string;
@@ -47,6 +47,16 @@ export interface PlaylistEntry {
   content: Content;
 }
 
+/** Playlist untuk daftar: dilengkapi jumlah item */
+export interface PlaylistSummary extends Playlist {
+  item_count: number;
+}
+
+/** Playlist lengkap dengan isinya, berurutan */
+export interface PlaylistDetail extends Playlist {
+  items: PlaylistEntry[];
+}
+
 // ---------------------------------------------------------------------
 // WebSocket protocol
 //
@@ -60,22 +70,31 @@ export interface PlaylistEntry {
 
 /** Server -> Device */
 export type ServerToDeviceMessage =
-  | { type: 'welcome'; device: Device; playlist: PlaylistEntry[] }
-  | { type: 'playlist_updated'; playlist: PlaylistEntry[] }
-  | { type: 'push_content'; content: Content; duration_seconds?: number }
-  | { type: 'error'; message: string };
+  | { type: "welcome"; device: Device; playlist: PlaylistEntry[] }
+  | { type: "playlist_updated"; playlist: PlaylistEntry[] }
+  | { type: "push_content"; content: Content; duration_seconds?: number }
+  | { type: "error"; message: string };
 
 /** Server -> Dashboard */
 export type ServerToDashboardMessage =
-  | { type: 'snapshot'; devices: Device[] }
-  | { type: 'device_status'; deviceId: string; status: DeviceStatus; last_seen: string }
-  | { type: 'device_changed'; device: Device }
-  | { type: 'device_removed'; deviceId: string }
-  | { type: 'error'; message: string };
+  | { type: "snapshot"; devices: Device[] }
+  | {
+      type: "device_status";
+      deviceId: string;
+      status: DeviceStatus;
+      last_seen: string;
+    }
+  | { type: "device_changed"; device: Device }
+  | { type: "device_removed"; deviceId: string }
+  | { type: "error"; message: string };
 
 /** Dashboard -> Server */
-export type DashboardToServerMessage =
-  | { type: 'push_content'; deviceId: string; contentId: string; duration_seconds?: number };
+export type DashboardToServerMessage = {
+  type: "push_content";
+  deviceId: string;
+  contentId: string;
+  duration_seconds?: number;
+};
 
 // ---------------------------------------------------------------------
 // REST helpers
@@ -95,5 +114,5 @@ export interface ApiErrorBody {
   error: { code: string; message: string; details?: unknown };
 }
 
-export * from './constants';
-export * from './schemas';
+export * from "./constants";
+export * from "./schemas";
